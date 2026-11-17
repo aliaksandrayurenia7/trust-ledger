@@ -27,7 +27,7 @@ module Risk
         )
       end
 
-      score = [fired.sum { |rule| rule.class.points }, MAX_SCORE].min
+      score = [ fired.sum { |rule| rule.class.points }, MAX_SCORE ].min
       @order.update!(risk_score: score)
       score
     end

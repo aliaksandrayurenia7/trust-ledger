@@ -2,7 +2,7 @@ Rails.application.routes.draw do
   get "health",  to: "health#show"
   get "metrics", to: "metrics#show"
 
-  resources :orders, only: [:create, :show] do
+  resources :orders, only: [ :create, :show ] do
     member do
       post :payment
       post :delivery
@@ -10,7 +10,7 @@ Rails.application.routes.draw do
       post :refund
     end
 
-    resources :disputes, only: [:create]
+    resources :disputes, only: [ :create ]
   end
 
   resources :disputes, only: [] do
@@ -20,6 +20,6 @@ Rails.application.routes.draw do
   end
 
   namespace :support do
-    resources :cases, only: [:show, :index], param: :order_id
+    resources :cases, only: [ :show, :index ], param: :order_id
   end
 end

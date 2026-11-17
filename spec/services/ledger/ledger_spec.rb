@@ -14,7 +14,7 @@ RSpec.describe "Ledger" do
           order: order,
           kind: "payment_captured",
           idempotency_key: "broken",
-          entries: [{ account: "buyer:1", amount_cents: -100 }]
+          entries: [ { account: "buyer:1", amount_cents: -100 } ]
         )
       }.to raise_error(Ledger::RecordTransaction::UnbalancedError)
     end
@@ -25,7 +25,7 @@ RSpec.describe "Ledger" do
           order: order,
           kind: "payment_captured",
           idempotency_key: "broken",
-          entries: [{ account: "buyer:1", amount_cents: -100 }]
+          entries: [ { account: "buyer:1", amount_cents: -100 } ]
         )
       rescue Ledger::RecordTransaction::UnbalancedError
         nil

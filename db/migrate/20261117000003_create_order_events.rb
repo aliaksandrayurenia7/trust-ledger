@@ -12,6 +12,6 @@ class CreateOrderEvents < ActiveRecord::Migration[8.1]
       t.datetime :created_at, null: false
     end
 
-    add_index :order_events, [:order_id, :created_at]
+    add_index :order_events, [ :order_id, :created_at ]
   end
 end

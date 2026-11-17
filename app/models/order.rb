@@ -40,7 +40,7 @@ class Order < ApplicationRecord
     end
 
     event :refund do
-      transitions from: [:held, :under_review, :payout_ready], to: :refunded
+      transitions from: [ :held, :under_review, :payout_ready ], to: :refunded
     end
   end
 end

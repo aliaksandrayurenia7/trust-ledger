@@ -41,10 +41,10 @@ gem "sidekiq", ">= 8.1"
 gem "redis", ">= 6.0"
 gem "lograge", ">= 0.16.0"
 
-gem "rspec-rails", ">= 8.1", groups: [:development, :test]
-gem "factory_bot_rails", ">= 6.5", groups: [:development, :test]
-gem "faker", ">= 3.8", groups: [:development, :test]
-gem "dotenv-rails", ">= 3.2", groups: [:development, :test]
+gem "rspec-rails", ">= 8.1", groups: [ :development, :test ]
+gem "factory_bot_rails", ">= 6.5", groups: [ :development, :test ]
+gem "faker", ">= 3.8", groups: [ :development, :test ]
+gem "dotenv-rails", ">= 3.2", groups: [ :development, :test ]
 
 gem "shoulda-matchers", ">= 8.0", group: :test
 gem "database_cleaner-active_record", ">= 2.2", group: :test
