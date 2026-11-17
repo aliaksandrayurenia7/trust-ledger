@@ -1,14 +1,23 @@
 class OrdersController < ApplicationController
   def create
-    order = Order.create!(order_params)
+    attrs = order_params
+    attrs[:buyer_id] = current_user.id unless current_user.support? || current_user.system?
+
+    order = Order.create!(attrs)
     render json: Support::CaseBuilder.call(order: order), status: :created
   end
 
   def show
-    render json: Support::CaseBuilder.call(order: find_order)
+    order = find_order
+    return unless require_participant!(order)
+
+    render json: Support::CaseBuilder.call(order: order)
   end
 
+  # Called by the payment provider, not by a person.
   def payment
+    return unless require_system!
+
     key = idempotency_key!
     return unless key
 
@@ -16,19 +25,25 @@ class OrdersController < ApplicationController
     render json: Support::CaseBuilder.call(order: order)
   end
 
+  # Called by the courier.
   def delivery
+    return unless require_system!
+
     key = idempotency_key!
     return unless key
 
     order = find_order
     order.confirm_delivery!
     Orders::Events.record(order, from_state: "held", to_state: "payout_ready",
-                          actor_type: "system", reason_code: "delivery_confirmed")
+                          actor_type: "system", actor_id: current_user.id,
+                          reason_code: "delivery_confirmed")
 
     render json: Support::CaseBuilder.call(order: order.reload)
   end
 
   def payout
+    return unless require_staff!
+
     key = idempotency_key!
     return unless key
 
@@ -39,7 +54,7 @@ class OrdersController < ApplicationController
       Ledger::ReleasePayout.call(order: order, idempotency_key: key)
       order.release_payout!
       Orders::Events.record(order, from_state: "payout_ready", to_state: "completed",
-                            actor_type: current_role, actor_id: current_user_id,
+                            actor_type: current_user.role, actor_id: current_user.id,
                             reason_code: params[:reason_code] || "payout_sent")
     end
 
@@ -47,6 +62,8 @@ class OrdersController < ApplicationController
   end
 
   def refund
+    return unless require_staff!
+
     key = idempotency_key!
     return unless key
 
@@ -56,7 +73,7 @@ class OrdersController < ApplicationController
       Ledger::Refund.call(order: order, idempotency_key: key)
       order.refund!
       Orders::Events.record(order, to_state: "refunded",
-                            actor_type: current_role, actor_id: current_user_id,
+                            actor_type: current_user.role, actor_id: current_user.id,
                             reason_code: params[:reason_code] || "refunded")
     end
 

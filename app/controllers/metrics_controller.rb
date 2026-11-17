@@ -1,4 +1,6 @@
 class MetricsController < ApplicationController
+  skip_before_action :authenticate!
+
   # Numbers a support lead actually looks at, not generic server stats.
   def show
     render json: {

@@ -1,12 +1,18 @@
 require "rails_helper"
 
 RSpec.describe "Support cases API", type: :request do
-  let(:support_headers) { { "X-Role" => "support", "X-User-Id" => "99" } }
+  let(:support) { create(:support) }
 
   def json = JSON.parse(response.body)
 
-  it "does not let a buyer read the support queue" do
+  it "is closed without a token" do
     get "/support/cases"
+
+    expect(response).to have_http_status(:unauthorized)
+  end
+
+  it "does not let a buyer read the support queue" do
+    get "/support/cases", headers: auth(create(:user))
 
     expect(response).to have_http_status(:forbidden)
   end
@@ -18,7 +24,7 @@ RSpec.describe "Support cases API", type: :request do
     order.capture_payment!
     order.flag_for_review!
 
-    get "/support/cases", headers: support_headers
+    get "/support/cases", headers: auth(support)
 
     expect(response).to have_http_status(:ok)
     expect(json["count"]).to eq(1)
@@ -31,7 +37,7 @@ RSpec.describe "Support cases API", type: :request do
     order  = create(:order, seller: seller, amount_cents: 20_000)
     Orders::CapturePayment.call(order: order, idempotency_key: "pay-1")
 
-    get "/support/cases/#{order.id}", headers: support_headers
+    get "/support/cases/#{order.id}", headers: auth(support)
 
     expect(response).to have_http_status(:ok)
     expect(json["why_held"].map { |r| r["rule"] }).to include("new_account_high_value")

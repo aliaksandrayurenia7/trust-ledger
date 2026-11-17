@@ -7,7 +7,7 @@ module Support
       render json: CaseBuilder.call(order: order)
     end
 
-    # The queue a representative actually works from: oldest first,
+    # The queue a CS representative actually works from: oldest first,
     # because the longest waiting customer is the angriest one.
     def index
       orders = Order.where(state: "under_review")

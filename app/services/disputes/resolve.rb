@@ -1,5 +1,5 @@
 module Disputes
-  # A support representative decides. The decision moves the money and is
+  # A CS representative decides. The decision moves the money and is
   # always stored with a reason, so the case can be explained later.
   class Resolve
     RESOLUTIONS = %w[buyer_wins seller_wins].freeze

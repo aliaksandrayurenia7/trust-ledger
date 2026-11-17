@@ -4,10 +4,11 @@ class DisputesController < ApplicationController
 
   def create
     order = Order.find(params[:order_id])
+    return unless require_participant!(order)
 
     Disputes::Open.call(
       order: order,
-      opened_by: params.require(:opened_by),
+      opened_by: side_of(order),
       reason_code: params.require(:reason_code),
       note: params[:note]
     )
@@ -16,7 +17,7 @@ class DisputesController < ApplicationController
   end
 
   def resolve
-    return unless support_role?
+    return unless require_support!
 
     key = idempotency_key!
     return unless key
@@ -27,7 +28,7 @@ class DisputesController < ApplicationController
       dispute: dispute,
       resolution: params.require(:resolution),
       reason_code: params.require(:reason_code),
-      support_id: current_user_id,
+      support_id: current_user.id,
       idempotency_key: key
     )
 
@@ -36,10 +37,11 @@ class DisputesController < ApplicationController
 
   private
 
-  def support_role?
-    return true if current_role == "support"
+  # Which side of the order the caller is on, taken from the order itself
+  # and not from what the caller claims.
+  def side_of(order)
+    return "buyer" if order.buyer_id == current_user.id
 
-    render json: { error: "support role required" }, status: :forbidden
-    false
+    "seller"
   end
 end

@@ -1,4 +1,6 @@
 class HealthController < ApplicationController
+  skip_before_action :authenticate!
+
   def show
     render json: { status: "ok", database: database_ok? }
   end

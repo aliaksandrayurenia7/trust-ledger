@@ -1,5 +1,5 @@
 module Support
-  # One call gives a support representative everything needed to decide:
+  # One call gives a CS representative everything needed to decide:
   # what happened, where the money is, why it was held, and what can be done now.
   class CaseBuilder
     EXPLANATIONS = {

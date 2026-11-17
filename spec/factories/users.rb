@@ -10,5 +10,9 @@ FactoryBot.define do
     factory :support do
       role { "support" }
     end
+
+    factory :system_user do
+      role { "system" }
+    end
   end
 end

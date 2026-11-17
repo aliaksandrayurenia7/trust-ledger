@@ -81,3 +81,13 @@ Shoulda::Matchers.configure do |config|
     with.library :rails
   end
 end
+
+module AuthHelpers
+  def auth(user, extra = {})
+    { "Authorization" => "Bearer #{user.api_token}" }.merge(extra)
+  end
+end
+
+RSpec.configure do |config|
+  config.include AuthHelpers, type: :request
+end

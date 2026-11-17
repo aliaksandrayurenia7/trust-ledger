@@ -9,7 +9,7 @@ flowchart LR
         BUYER[Buyer and seller app]
         PAY[Payment provider]
         COURIER[Courier webhooks]
-        SUP[Support representative]
+        SUP[Support CS representative]
     end
 
     subgraph service [trust-ledger]

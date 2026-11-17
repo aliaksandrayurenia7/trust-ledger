@@ -1,9 +1,12 @@
 require "rails_helper"
 
 RSpec.describe "Metrics", type: :request do
+  let(:system_user) { create(:system_user) }
+  let(:support)     { create(:support) }
+
   def json = JSON.parse(response.body)
 
-  it "reports health" do
+  it "reports health without a token, monitoring has no account" do
     get "/health"
 
     expect(response).to have_http_status(:ok)
@@ -14,7 +17,7 @@ RSpec.describe "Metrics", type: :request do
   it "counts orders by state and money still held" do
     seller = create(:seller, created_at: 1.year.ago)
     order  = create(:order, seller: seller, amount_cents: 5_000)
-    post "/orders/#{order.id}/payment", headers: { "Idempotency-Key" => "pay-1" }
+    post "/orders/#{order.id}/payment", headers: auth(system_user, "Idempotency-Key" => "pay-1")
 
     get "/metrics"
 
@@ -27,12 +30,12 @@ RSpec.describe "Metrics", type: :request do
   it "shows how many finished orders never needed a human" do
     seller = create(:seller, created_at: 1.year.ago)
     order  = create(:order, seller: seller, amount_cents: 5_000)
-    post "/orders/#{order.id}/payment",  headers: { "Idempotency-Key" => "pay-1" }
-    post "/orders/#{order.id}/delivery", headers: { "Idempotency-Key" => "del-1" }
-    post "/orders/#{order.id}/payout",   headers: { "Idempotency-Key" => "out-1" }
+    post "/orders/#{order.id}/payment",  headers: auth(system_user, "Idempotency-Key" => "pay-1")
+    post "/orders/#{order.id}/delivery", headers: auth(system_user, "Idempotency-Key" => "del-1")
+    post "/orders/#{order.id}/payout",   headers: auth(support, "Idempotency-Key" => "out-1")
 
     get "/metrics"
 
-    expect(json["auto_resolved_share"]).to eq(100.0)
+    expect(json["auto_resolved_share"]).to eq(0.0)
   end
 end

@@ -11,7 +11,7 @@ class LedgerEntry < ApplicationRecord
   }
 
   # A balance is always summed, never stored. Pass an order to scope the
-  # balance to a single case, which is what a support representative needs.
+  # balance to a single case, which is what a CS representative needs.
   def self.balance_of(account, order_id: nil)
     scope = for_account(account)
     scope = scope.for_order(order_id) if order_id

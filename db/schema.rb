@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_17_000007) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_17_000008) do
   create_table "disputes", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "order_id", null: false
     t.string "opened_by", limit: 16, null: false
@@ -86,6 +86,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_17_000007) do
     t.string "country", limit: 2
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "api_token", limit: 64
+    t.index ["api_token"], name: "index_users_on_api_token", unique: true
   end
 
   add_foreign_key "disputes", "orders"
