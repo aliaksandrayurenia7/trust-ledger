@@ -16,6 +16,7 @@ module Support
       {
         order: order_summary,
         why_held: why_held,
+        customer_message: customer_message,
         timeline: timeline,
         money: money,
         available_actions: available_actions,
@@ -45,6 +46,20 @@ module Support
           points: check.points,
           explain: format(template, check.details.symbolize_keys)
         }
+      end
+    end
+
+    # What the CS representative may say to the customer. Risk rules are never
+    # exposed: telling a customer which rule fired would teach fraud rings
+    # exactly what to avoid.
+    def customer_message
+      case order.state
+      when "created"      then "We have not taken the payment yet."
+      when "held"         then "We are holding the payment. It goes to the seller once delivery is confirmed."
+      when "under_review" then "We are holding the payment while we check this order. We will update you shortly."
+      when "payout_ready" then "Delivery is confirmed. The payment is on its way to the seller."
+      when "completed"    then "The order is finished and the seller has been paid."
+      when "refunded"     then "The payment has been returned to the buyer."
       end
     end
 

@@ -43,4 +43,18 @@ RSpec.describe "Support cases API", type: :request do
     expect(json["why_held"].map { |r| r["rule"] }).to include("new_account_high_value")
     expect(json["why_held"].first["explain"]).to be_present
   end
+
+  it "gives a customer safe message that never names a risk rule" do
+    seller = create(:seller, created_at: 1.day.ago)
+    order  = create(:order, seller: seller, amount_cents: 20_000)
+    Orders::CapturePayment.call(order: order, idempotency_key: "pay-1")
+
+    get "/support/cases/#{order.id}", headers: auth(support)
+
+    message = json["customer_message"]
+    expect(message).to be_present
+    expect(message).not_to include("rule")
+    expect(message).not_to match(/risk|fraud|account is \d+ days old/i)
+    expect(json["why_held"]).to be_present
+  end
 end
