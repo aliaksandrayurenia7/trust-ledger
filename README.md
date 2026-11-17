@@ -186,4 +186,34 @@ break the system:
 - a payout cannot happen while a human is still reviewing the order
 - a payout cannot happen for money that was never captured
 - a final state is never left
-- a buyer cannot refund their own
+- a buyer cannot refund their own order and a seller cannot pay themselves
+- a `buyer_id` sent by a caller who is not support is ignored
+- the side of a dispute is taken from the order, not from what the caller claims
+- a second dispute on the same order is refused
+- resolving a dispute is closed to everyone except support
+- the customer facing message never names a risk rule
+- a decision recorded against a user who does not exist is rejected by the
+  database, which is how the foreign key earns its place
+
+## Running locally
+
+```bash
+cp .env.example .env
+docker compose up -d        # MySQL and Redis
+bin/rails db:create db:migrate
+bin/rails s
+
+bundle exec rspec           # tests
+bundle exec rubocop         # lint
+bundle exec brakeman        # security scan
+```
+
+## Scope
+
+No real payment provider, no frontend, no Kubernetes. This project is about the
+money, the states and the explanation.
+
+## Stack
+
+Ruby 3.3, Rails 8 (API only), MySQL 8.4, Redis, RSpec, Docker Compose,
+GitHub Actions.
