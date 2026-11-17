@@ -6,8 +6,15 @@ class LedgerEntry < ApplicationRecord
 
   # minus is money leaving an account, plus is money arriving
   scope :for_account, ->(account) { where(account: account) }
+  scope :for_order, ->(order_id) {
+    joins(:ledger_transaction).where(ledger_transactions: { order_id: order_id })
+  }
 
-  def self.balance_of(account)
-    for_account(account).sum(:amount_cents)
+  # A balance is always summed, never stored. Pass an order to scope the
+  # balance to a single case, which is what a support representative needs.
+  def self.balance_of(account, order_id: nil)
+    scope = for_account(account)
+    scope = scope.for_order(order_id) if order_id
+    scope.sum(:amount_cents)
   end
 end
