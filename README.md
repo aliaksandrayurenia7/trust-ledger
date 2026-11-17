@@ -135,4 +135,55 @@ No machine learning. A human has to be able to read the reason out loud.
 | rule                        | points | condition                                      |
 | --------------------------- | ------ | ---------------------------------------------- |
 | `new_account_high_value`    | 40     | seller younger than 7 days and amount above 40 |
-|
+| `seller_many_cancellations` | 30     | 3 or more refunds in the last 30 days          |
+| `high_value_order`          | 25     | amount above 100                               |
+
+| score     | what happens                         |
+| --------- | ------------------------------------ |
+| 0 to 39   | normal hold                          |
+| 40 to 69  | extended hold, payout after delivery |
+| 70 to 100 | `under_review`, a human decides      |
+
+Every rule that fires is stored in `risk_checks` with its points and the facts
+behind it, which is what the support endpoint turns into a sentence.
+
+## Design decisions
+
+**Double entry instead of a balance column.** A balance column has to be
+updated, and an update can be lost, duplicated or applied out of order. Summing
+entries cannot drift, and the history of how a balance was reached is the data
+itself.
+
+**Idempotency keys on every money endpoint.** A payment webhook that arrives
+twice must not pay twice. The key is unique in the database, so the guarantee is
+enforced by MySQL and not by application logic that can be bypassed.
+
+**Two audiences, two answers.** The internal reason and the customer facing
+sentence are separate fields, so a reason can be detailed without risking a leak.
+
+**Roles come from the database, not from a header.** An earlier version read the
+role from `X-Role`, which meant anyone could call themselves support and approve
+their own payout.
+
+**Events are append only.** `orders` holds the current state. `order_events`
+holds how it got there and is never updated or deleted, so a case can always be
+explained after the fact.
+
+**`ledger_transactions`, not `transactions`.** A model named `Transaction` would
+make `belongs_to :transaction` override ActiveRecord's own `transaction` method.
+
+**Balances in a case are scoped to that order.** The first version summed the
+buyer's whole account and showed money from unrelated orders. Fixed by joining
+entries to the order.
+
+## Testing
+
+`bundle exec rspec` runs 53 specs. The ones that matter are the ones that try to
+break the system:
+
+- the same payment webhook delivered twice does not charge twice
+- an unbalanced set of entries writes nothing at all
+- a payout cannot happen while a human is still reviewing the order
+- a payout cannot happen for money that was never captured
+- a final state is never left
+- a buyer cannot refund their own
