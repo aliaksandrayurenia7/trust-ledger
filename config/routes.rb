@@ -1,5 +1,6 @@
 Rails.application.routes.draw do
-  get "health", to: "health#show"
+  get "health",  to: "health#show"
+  get "metrics", to: "metrics#show"
 
   resources :orders, only: [:create, :show] do
     member do
